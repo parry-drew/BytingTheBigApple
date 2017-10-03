@@ -5,11 +5,12 @@
 # This script will download LION and Amdin Shapefiles from DCP's Bytes of The
 # Big Apple Page.
 #
-# C:\Python27\ArcGIS10.4\python.exe C:\GitHub\Python\byting_the_big_apple\BytingTheBigApple.py
+# C:\Python27\ArcGIS10.4\python.exe BytingTheBigApple.py
 #
 # ---------------------------------------------------------------------------
 import os, json, csv, datetime, timeit, urllib2, shutil, zipfile, arcpy, glob
 from zipfile import *
+from arcpy import env
 
 title = """
         (
@@ -47,98 +48,135 @@ data = {
       {
          "file":"nyad_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyad_",
-         "name":"State_Assembly_Districts"
+         "name":"State_Assembly_Districts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nybb_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nybb_",
-         "name":"Borough_Boundary"
+         "name":"Borough_Boundary",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nycc_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycc_",
-         "name":"City_Council_Disrtricts"
+         "name":"City_Council_Disrtricts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nycd_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycd_",
-         "name":"Community_Districts"
+         "name":"Community_Districts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nycg_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycg_",
-         "name":"US_Congressional_Districts"
+         "name":"US_Congressional_Districts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nyed_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyed_",
-         "name":"Election_Districts"
+         "name":"Election_Districts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nyfb_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyfb_",
-         "name":"Fire_Battalions"
+         "name":"Fire_Battalions",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nyfc_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyfc_",
-         "name":"Fire_Companies"
+         "name":"Fire_Companies",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nyfd_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyfd_",
-         "name":"Fire_Divisions"
+         "name":"Fire_Divisions",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nyha_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyha_",
-         "name":"Health_Area"
+         "name":"Health_Area",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nymc_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nymc_",
-         "name":"Municipal_Court_Districts"
+         "name":"Municipal_Court_Districts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nypp_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nypp_",
-         "name":"Police_Precincts"
+         "name":"Police_Precincts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nysd_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nysd_",
-         "name":"School_Districts"
+         "name":"School_Districts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nyss_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyss_",
-         "name":"State_Senate_Districts"
+         "name":"State_Senate_Districts",
+         "gisgrid":"BOUNDARIES"
       },
       {
          "file":"nycb2000_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycb2000_",
-         "name":"Census_Blocks_2000"
+         "name":"Census_Blocks_2000",
+         "gisgrid":"CENSUS"
       },
       {
          "file":"nycb2010_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycb2010_",
-         "name":"Census_Blocks_2010"
+         "name":"Census_Blocks_2010",
+          "gisgrid":"CENSUS"
       },
       {
          "file":"nyct2000_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyct2000_",
-         "name":"Census_Tracts_2000"
+         "name":"Census_Tracts_2000",
+          "gisgrid":"CENSUS"
       },
       {
          "file":"nyct2010_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyct2010_",
-         "name":"Census_Tracks_2010"
+         "name":"Census_Tracks_2010",
+          "gisgrid":"CENSUS"
       },
       {
          "file":"nyclion_",
          "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyclion_",
-         "name":"LION"
-      }
+         "name":"LION",
+         "gisgrid":"LION"
+      },
+      {
+         "file":"nynta_",
+         "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nynta_",
+         "name":"Neighborhood_Tabulation_Areas",
+         "gisgrid":"CENSUS"
+      },
+      {
+         "file":"nypuma_",
+         "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nypuma_",
+         "name":"PUMA",
+         "gisgrid":"CENSUS"
+      },
+      {
+         "file":"nyhez_",
+         "url":"https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyhez_",
+         "name":"Hurricane_Evacuation_Zones",
+         "gisgrid":"PUBLICSAFETY"
+      },
    ]
 }
 # Clears out old folder.
@@ -153,8 +191,7 @@ def manage_directories(d, l):
 
     for i in glob.glob("*.zip"):
         shutil.rmtree(i)
-# Gathers data from Bytes of The Big Apple and Unzips it.
-# Also makes the LION gdb
+# Gathers data from Bytes of The Big Apple and Unzips it. Also makes the LION gdb
 def byting(d, l):
     #used to over come proxy issue in the office
     proxy = urllib2.ProxyHandler({})
@@ -168,7 +205,7 @@ def byting(d, l):
             data = f.read()
             with open(i['file']+ l + ".zip", "wb") as code:
                 code.write(data)
-            #extracts zips to ALL-GTFS folders then removes the zip.
+            #extracts zips to ALL-GTFS folders
             with zipfile.ZipFile(root + '/' + i['file'] + l.upper() + '.zip', "r") as z:
                 z.extractall(root)
             #removes zip
@@ -188,11 +225,22 @@ def byting(d, l):
                 origin = root + '/'+ i + '/' + j
                 rename = root + '/'+ i + '/' + rj
                 shutil.move(origin , rename)
+            elif ('nypuma' in j):
+                rj = j[:6] + '_' + l.upper() + j[-4:]
+                origin = root + '/'+ i + '/' + j
+                rename = root + '/'+ i + '/' + rj
+                shutil.move(origin , rename)
+            elif ('nynta' in j) or ('nyhez' in j):
+                rj = j[:5] + '_' + l.upper() + j[-4:]
+                origin = root + '/'+ i + '/' + j
+                rename = root + '/'+ i + '/' + rj
+                shutil.move(origin , rename)
             else:
                 rj = j[:4] + '_' + l.upper() +  j[4:]
                 origin = root + '/'+ i + '/' + j
                 rename = root + '/'+ i + '/' + rj
                 shutil.move(origin , rename)
+
 # Creates a gdb for Admin Units
 def create_admin_gdb(d, l):
     #Creates a database to consolidate all the shp in a gdb
@@ -231,6 +279,12 @@ def create_lion_gdb(l):
     arcpy.Rename_management(old_node, new_node, data_type)
     os.rename(root + "\\lion.gdb", root + "\\LION_" + l.upper() + ".gdb")
 
+def rename_features(d,l):
+    env.workspace = root + "\\AdminUnits_17C.gdb"
+    for i in d['list']:
+        if i['file'] != "nyclion_":
+            arcpy.Rename_management(i['file'] + l, i['name'] + "_" + l.upper())
+
 def zip_data(l):
     print("\n    Creating Zips\n")
     zipFileGeodatabase(root + "\\LION_" + l.upper() + ".gdb", root + "\\LION_" + l.upper() +".zip")
@@ -260,6 +314,7 @@ def main():
     manage_directories(data, lion)
     byting(data, lion)
     create_admin_gdb(data, lion)
+    rename_features(data, lion)
     create_lion_gdb(lion)
     zip_data(lion)
     stop = timeit.default_timer()
